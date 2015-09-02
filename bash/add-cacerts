@@ -1,0 +1,42 @@
+#!/bin/bash
+# add-cacerts: Add many certificates to java keystore
+
+CERT_DIR="certs-to-add"
+KEYSTORE_PW="changeit"
+[[ -z "$JAVA_HOME" ]] && JAVA_HOME="/usr/java/latest"
+KEYTOOL="$JAVA_HOME/bin/keytool"
+
+set -eo pipefail
+[[ $TRACE ]] && set -x
+
+if [[ $# != 2 ]]; then
+  echo "Usage: $0 <orig keystore> <output keystore>"
+  exit 1
+fi
+
+main() {
+  declare in_store="$1" out_store="$2"
+  local run_dir="${0%/*}"
+  if [[ "$run_dir" == "$0" ]]; then
+    run_dir="."
+  fi
+  local cert_dir="$run_dir/$CERT_DIR"
+
+  if [ -f "$out_store" ]; then
+    echo "Output file '$out_store' already exists, aborting"
+    exit 1
+  fi
+
+  cp "$in_store" "$out_store"
+
+  for cert_path in "$cert_dir"/*.pem; do
+    local cert_file="${cert_path##*/}"
+    local cert_alias="${cert_file%.*}"
+    echo "# $cert_alias from $cert_path"
+    $KEYTOOL -importcert -noprompt -trustcacerts -keystore "$out_store" \
+      -storepass "$KEYSTORE_PW" -file "$cert_path" -alias "$cert_alias"
+    echo
+  done
+}
+
+main "$1" "$2"
