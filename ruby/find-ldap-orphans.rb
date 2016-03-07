@@ -36,16 +36,11 @@ if delete
 end
 
 # Prompt for password
-puts config[:source][:user]
-puts config[:target][:user]
-print "Password: "
+STDERR.puts config[:source][:user]
+STDERR.puts config[:target][:user]
+STDERR.print "Password: "
 password = STDIN.noecho(&:gets).chomp
-puts
-
-# if ARGV.length != 1
-#   print "Usage: user-report <ldap-container>\n"
-#   exit 1
-# end
+STDERR.puts
 
 # Connect to LDAP
 source = Net::LDAP.new(
