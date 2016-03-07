@@ -1,0 +1,21 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    citrus (3.0.2)
+    mini_portile2 (2.0.0)
+    net-ldap (0.14.0)
+    nokogiri (1.6.7.2)
+      mini_portile2 (~> 2.0.0.rc2)
+    toml-rb (0.3.10)
+      citrus (~> 3.0, > 3.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  net-ldap
+  nokogiri
+  toml-rb
+
+BUNDLED WITH
+   1.11.2

@@ -1,0 +1,7 @@
+# Gemfile
+# description: bundler Gemfile, http://bundler.io/gemfile.html
+#
+source 'https://rubygems.org'
+gem 'net-ldap'
+gem 'nokogiri'
+gem 'toml-rb'
