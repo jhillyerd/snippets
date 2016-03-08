@@ -1,12 +1,11 @@
 # config for ldap-find-orphans.rb
 
-show_attribs = [ "employeeType", "employeeStatus", "modifyTimestamp" ]
-
 # Authoritative source
 [source]
 host = "ldap.source.com"
 port = 636
-base = "cn=Users,dc=source,dc=com"
+base = "dc=source,dc=com"
+containers = [ "OU=Users", "OU=Terminated" ]
 user = "cn=admin,dc=source,dc=com"
 class = "inetOrgPerson"
 name = "cn"
@@ -20,3 +19,4 @@ user = "cn=admin,dc=target,dc=com"
 class = "inetOrgPerson"
 name = "cn"
 filter = "(employeeType=W)(employeeStatus=A)"
+show_attribs = [ "employeeType", "employeeStatus", "modifyTimestamp" ]

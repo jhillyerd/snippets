@@ -27,10 +27,13 @@ if delete
   ARGV.shift
 end
 
+# Loading configuration in TOML format: https://github.com/toml-lang/toml
 config = TOML.load_file(ARGV[0], symbolize_keys: true)
 
-show_attribs = config[:show_attribs]
+# Attributes we include in the output
+show_attribs = config[:target][:show_attribs]
 show_attribs.unshift(config[:target][:name])
+
 if delete
   STDERR.puts("WARN: Will delete orphans from #{config[:target][:host]}")
 end
@@ -42,17 +45,25 @@ STDERR.print "Password: "
 password = STDIN.noecho(&:gets).chomp
 STDERR.puts
 
+# Setup source container search bases
+source_containers = [ config[:source][:base] ]
+if config[:source][:containers]
+  source_containers = config[:source][:containers].map do |cont|
+    "#{cont},#{config[:source][:base]}"
+  end
+end
+
 # Connect to LDAP
 source = Net::LDAP.new(
   :host => config[:source][:host],
   :port => config[:source][:port],
-  :base => config[:source][:base],
   :encryption => :simple_tls,
   :auth => {
     :method => :simple,
     :username => config[:source][:user],
     :password => password
   })
+source.bind || abort("Failed to authenticate to #{config[:source][:host]}")
 
 target = Net::LDAP.new(
   :host => config[:target][:host],
@@ -64,6 +75,7 @@ target = Net::LDAP.new(
     :username => config[:target][:user],
     :password => password
   })
+target.bind || abort("Failed to authenticate to #{config[:target][:host]}")
 
 # Counters
 source_count = 0
@@ -80,14 +92,17 @@ puts show_attribs.join(',')
   # Get source attributes
   source_values = Set::new
   filter = "(&(objectClass=#{config[:source][:class]})(#{config[:source][:name]}=#{letter}*))"
-  source.search(
-    :filter => filter,
-    :attributes => [ config[:source][:name] ],
-    :return_result => false
-  ) do |entry|
-    name = entry.first(config[:source][:name]).downcase
-    source_values.add(name)
-    source_count += 1
+  source_containers.each do |container|
+    source.search(
+      :filter => filter,
+      :base => container,
+      :attributes => [ config[:source][:name] ],
+      :return_result => false
+    ) do |entry|
+      name = entry.first(config[:source][:name]).downcase
+      source_values.add(name)
+      source_count += 1
+    end
   end
 
   # Get target attributes
